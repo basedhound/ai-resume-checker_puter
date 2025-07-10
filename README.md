@@ -66,7 +66,7 @@ If you're getting started and need assistance or face any bugs, join our active 
 
 👉 **Resume upload & storage**: Let users upload and store all their resumes in one place, safely and reliably.
 
-👉 **AI-powered resume matching**: Provide a job listing and get an ATS score with custom feedback tailored to each resume.
+👉 **AI resume matching**: Provide a job listing and get an ATS score with custom feedback tailored to each resume.
 
 👉 **Reusable, modern UI**: Built with clean, consistent components for a great-looking and maintainable interface.
 
