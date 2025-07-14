@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import FileUploader from "~/components/FileUploader";
 import Navbar from "~/components/Navbar";
 import { usePuterStore } from "~/lib/puter";
 import type { Route } from "./+types/upload";
-import FileUploader from "~/components/FileUploader";
+import { convertPdfToImage } from "~/lib/pdf2img";
+// import { usePuterStore } from "~/lib/puter";
+import { generateUUID } from "~/lib/utils";
+// import { AIResponseFormat } from "~/constants";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,7 +17,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 const UploadPage = () => {
-  const { auth, isLoading } = usePuterStore();
+  const { auth, isLoading, fs, ai, kv  } = usePuterStore();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [statusText, setStatusText] = useState<string>("");
@@ -25,6 +29,11 @@ const UploadPage = () => {
     }
   }, [isLoading]);
 
+  
+  const handleFileSelect = (file: File | null) => {
+    setFile(file);
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget.closest("form");
@@ -33,12 +42,87 @@ const UploadPage = () => {
     const companyName = formData.get("company-name") as string;
     const jobTitle = formData.get("job-title") as string;
     const jobDescription = formData.get("job-description") as string;
-
-    console.log(companyName, jobTitle, jobDescription, file);
+    if (!file) {
+      return;
+    }
+    handleAnalyze({ companyName, jobTitle, jobDescription, file });
   };
 
-  const handleFileSelect = (file: File | null) => {
-    setFile(file);
+
+    const handleAnalyze = async ({
+    companyName,
+    jobTitle,
+    jobDescription,
+    file,
+  }: {
+    companyName: string;
+    jobTitle: string;
+    jobDescription: string;
+    file: File;
+  }) => {
+    setIsProcessing(true);
+    setStatusText("Uploading the file...");
+    const uploadedFile = await fs.upload([file]);
+
+    if (!uploadedFile) {
+      setStatusText("Error: Failed to upload file");
+      return;
+    }
+
+    setStatusText("Converting to image...");
+    const imageFile = await convertPdfToImage(file);
+
+    if (!imageFile.file) {
+      setStatusText("Error: Failed to convert PDF to image");
+      return;
+    }
+
+    setStatusText("Uploading the image...");
+    const uploadedImage = await fs.upload([imageFile.file]);
+
+    if (!uploadedImage) {
+      setStatusText("Error: Failed to upload image");
+      return;
+    }
+
+    setStatusText("Preparing data...");
+    const uuid = generateUUID();
+    const data = {
+      id: uuid,
+      resumePath: uploadedFile.path,
+      imagePath: uploadedImage.path,
+      companyName: companyName,
+      jobTitle: jobTitle,
+      jobDescription: jobDescription,
+      feedback: "",
+    };
+    await kv.set(`resume:${uuid}`, JSON.stringify(data));
+
+    setStatusText("Analyzing...");
+    const feedback = await ai.feedback(
+      uploadedFile.path,
+      `You are an expert in ATS (Applicant Tracking System) and resume analysis.
+      Analyze and rate the following resume. 
+      Be thorough and detailed. Don't be afraid to point out any mistakes or areas for improvement.
+      You can mention things that are already good in the resume, so user can know what to keep.
+      If provided, take the job description into consideration.
+      The job title is: ${jobTitle}
+      The job description is: ${jobDescription}
+      Provide the feedback using the following format:
+      ${AIResponseFormat}
+      Return the analysis as an JSON object, without any other text and without the backticks.
+      Do not include any other text or comments.`
+    );
+
+    if (!feedback) {
+      setStatusText("Error: Failed to analyze resume");
+      return;
+    }
+    data.feedback = JSON.parse(feedback.message.content);
+    await kv.set(`resume:${uuid}`, JSON.stringify(data));
+    setStatusText("Analysis complete, redirecting...");
+    // navigate(`/resume/${uuid}`);
+    console.log(data);
   };
 
   return (
@@ -95,9 +179,11 @@ const UploadPage = () => {
                 <FileUploader onFileSelect={handleFileSelect} />
               </div>
 
-              <button className="primary-button" type="submit">
-                Save & Analyze Resume
-              </button>
+              {file && (
+                <button className="primary-button" type="submit">
+                  Save & Analyze Resume
+                </button>
+              )}
             </form>
           )}
         </div>
