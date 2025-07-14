@@ -5,9 +5,8 @@ import Navbar from "~/components/Navbar";
 import { usePuterStore } from "~/lib/puter";
 import type { Route } from "./+types/upload";
 import { convertPdfToImage } from "~/lib/pdf2img";
-// import { usePuterStore } from "~/lib/puter";
 import { generateUUID } from "~/lib/utils";
-// import { AIResponseFormat } from "~/constants";
+import { AIResponseFormat } from "~/constants";
 
 export function meta({}: Route.MetaArgs) {
   return [
