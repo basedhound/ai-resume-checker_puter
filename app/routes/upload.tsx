@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import FileUploader from "~/components/FileUploader";
 import Navbar from "~/components/Navbar";
-import { usePuterStore } from "~/lib/puter";
-import type { Route } from "./+types/upload";
 import { convertPdfToImage } from "~/lib/pdf2img";
+import { usePuterStore } from "~/lib/puter";
 import { generateUUID } from "~/lib/utils";
-import { AIResponseFormat } from "~/constants";
+import type { Route } from "./+types/upload";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -16,7 +15,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 const UploadPage = () => {
-  const { auth, isLoading, fs, ai, kv  } = usePuterStore();
+  const { auth, isLoading, error, fs, ai, kv } = usePuterStore();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [statusText, setStatusText] = useState<string>("");
@@ -28,7 +27,6 @@ const UploadPage = () => {
     }
   }, [isLoading]);
 
-  
   const handleFileSelect = (file: File | null) => {
     setFile(file);
   };
@@ -47,8 +45,7 @@ const UploadPage = () => {
     handleAnalyze({ companyName, jobTitle, jobDescription, file });
   };
 
-
-    const handleAnalyze = async ({
+  const handleAnalyze = async ({
     companyName,
     jobTitle,
     jobDescription,
@@ -101,26 +98,75 @@ const UploadPage = () => {
     const feedback = await ai.feedback(
       uploadedFile.path,
       `You are an expert in ATS (Applicant Tracking System) and resume analysis.
-      Analyze and rate the following resume. 
+      Please analyze and rate this resume and suggest how to improve it.
+      The rating can be low if the resume is bad.
       Be thorough and detailed. Don't be afraid to point out any mistakes or areas for improvement.
-      You can mention things that are already good in the resume, so user can know what to keep.
-      If provided, take the job description into consideration.
+      If there is a lot to improve, don't hesitate to give low scores. This is to help the user to improve their resume.
+      If available, use the job description for the job user is applying to to give more detailed feedback.
       The job title is: ${jobTitle}
       The job description is: ${jobDescription}
       Provide the feedback using the following format:
-      ${AIResponseFormat}
+      interface Feedback {
+        overallScore: number; //max 100
+        name: string; //the name of the person in the resume
+        summary: string; //give a short summary of what is in the resume, like the name, job title, experience, etc.
+        ATS: {
+          score: number; //rate based on ATS suitability
+          tips: {
+            type: "good" | "improve";
+            tip: string; //give 3-4 tips
+          }[];
+        };
+        toneAndStyle: {
+          score: number; //max 100
+          tips: {
+            type: "good" | "improve";
+            tip: string; //make it a short "title" for the actual explanation
+            explanation: string; //explain in detail here
+          }[]; //give 3-4 tips
+        };
+        content: {
+          score: number; //max 100
+          tips: {
+            type: "good" | "improve";
+            tip: string; //make it a short "title" for the actual explanation
+            explanation: string; //explain in detail here
+          }[]; //give 3-4 tips
+        };
+        structure: {
+          score: number; //max 100
+          tips: {
+            type: "good" | "improve";
+            tip: string; //make it a short "title" for the actual explanation
+            explanation: string; //explain in detail here
+          }[]; //give 3-4 tips
+        };
+        skills: {
+          score: number; //max 100
+          tips: {
+            type: "good" | "improve";
+            tip: string; //make it a short "title" for the actual explanation
+            explanation: string; //explain in detail here
+          }[]; //give 3-4 tips
+        };
+      }
       Return the analysis as an JSON object, without any other text and without the backticks.
-      Do not include any other text or comments.`
+      Do not include any other text or comments.
+    `
     );
 
     if (!feedback) {
       setStatusText("Error: Failed to analyze resume");
       return;
     }
-    data.feedback = JSON.parse(feedback.message.content);
+    console.log(feedback);
+    const feedbackText =
+      typeof feedback.message.content === "string"
+        ? feedback.message.content
+        : feedback.message.content[0].text;
+    data.feedback = JSON.parse(feedbackText);
     await kv.set(`resume:${uuid}`, JSON.stringify(data));
     setStatusText("Analysis complete, redirecting...");
-    console.log(data);
     navigate(`/resume/${uuid}`);
   };
 
@@ -142,7 +188,8 @@ const UploadPage = () => {
             <form
               id="upload-form"
               onSubmit={handleSubmit}
-              className="flex flex-col gap-4">
+              className="flex flex-col gap-4"
+            >
               <div className="form-div">
                 <label htmlFor="company-name">Company Name</label>
                 <input
