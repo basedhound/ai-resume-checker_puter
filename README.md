@@ -105,16 +105,6 @@ Install the project dependencies using npm:
 npm install
 ```
 
-**Set Up Environment Variables**
-
-Create a new file named `.env` in the root of your project and add the following content:
-
-```env
-
-```
-
-Replace the placeholder values with your actual ImageKit, NeonDB, Upstash, and Resend credentials. You can obtain these credentials by signing up on: 
-
 **Running the Project**
 
 ```bash
