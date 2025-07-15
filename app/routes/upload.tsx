@@ -120,8 +120,8 @@ const UploadPage = () => {
     data.feedback = JSON.parse(feedback.message.content);
     await kv.set(`resume:${uuid}`, JSON.stringify(data));
     setStatusText("Analysis complete, redirecting...");
-    // navigate(`/resume/${uuid}`);
     console.log(data);
+    navigate(`/resume/${uuid}`);
   };
 
   return (
