@@ -25,9 +25,9 @@
 
 ## <a name="introduction">✨ Introduction</a>
 
-**[EN]** AI-powered Resume Analyzer built with React, React Router, and Puter.js — featuring seamless authentication, resume upload and storage, smart AI-based candidate matching, personalized feedback, and ATS scores tailored to each job listing, all within a clean, reusable UI.
+**`[EN]`** AI-powered Resume Analyzer built with React, React Router, and Puter.js — featuring seamless authentication, resume upload and storage, smart AI-based candidate matching, personalized feedback, and ATS scores tailored to each job listing, all within a clean, reusable UI.
 
-**[FR]** Un analyseur de CV propulsé par l’IA, développé avec React, React Router et Puter.js — avec une authentification fluide, l’upload et le stockage de CV, un système intelligent de mise en relation candidats/offres, des retours personnalisés et des scores ATS adaptés à chaque annonce, le tout dans une interface propre et réutilisable.
+**`[FR]`** Un analyseur de CV propulsé par l’IA, développé avec React, React Router et Puter.js — avec une authentification fluide, l’upload et le stockage de CV, un système intelligent de mise en relation candidats/offres, des retours personnalisés et des scores ATS adaptés à chaque annonce, le tout dans une interface propre et réutilisable.
 
 ## <a name="tech-stack">⚙️ Tech Stack</a>
 
