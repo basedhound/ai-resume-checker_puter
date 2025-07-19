@@ -1,5 +1,5 @@
 {
-  "name": "resume-checker_react",
+  "name": "ai-resume-analyzer",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "pdfjs-dist": "^5.3.93",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
     "react-router": "^7.5.3",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.6"
